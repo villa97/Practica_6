@@ -1,15 +1,72 @@
-This is an Arduino library for the DHT series of low cost temperature/humidity sensors.
+# DHT11
+Humidity e Temperature Sensor
 
-Tutorial: https://learn.adafruit.com/dht
+> O DHT11 é um sensor de temperatura e umidade que permite fazer leituras de temperaturas entre 0°C a 50°C e umidade entre 20 a 90%.
 
-To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder DHT. Check that the DHT folder contains DHT.cpp and DHT.h. Place the DHT library folder your <arduinosketchfolder>/libraries/ folder. You may need to create the libraries subfolder if its your first library. Restart the IDE.
+>
+* Faixa de medição de umidade: 20% a 90% UR
+* Faixa de medição de temperatura: 0°C a 50°C
+* Alimentação: 3V - 5.5V
+* Corrente: 200uA a 500mA, em stand by de 100uA a 150 uA
+* Precisão de umidade de medição: ± 5,0% UR
+* Precisão de medição de temperatura: ± 2.0 °C
+* Tempo de resposta: 2s
 
-# Adafruit DHT Humidity & Temperature Unified Sensor Library
+#### EXEMPLO
 
-This library also includes an optional class for the
-[DHT humidity and temperature sensor](https://learn.adafruit.com/dht/overview)
-which is designed to work with the [Adafruit unified sensor library](https://learn.adafruit.com/using-the-adafruit-unified-sensor-driver/introduction).
+```c
+#include "DHT11.h"
 
-You must have the following Arduino libraries installed to use this class:
+/* Pinos do display LCD */
+sbit LCD_RS at RB0_bit;
+sbit LCD_EN at RB1_bit;
+sbit LCD_D4 at RB2_bit;
+sbit LCD_D5 at RB3_bit;
+sbit LCD_D6 at RB4_bit;
+sbit LCD_D7 at RB5_bit;
+sbit LCD_RS_Direction at TRISB0_bit;
+sbit LCD_EN_Direction at TRISB1_bit;
+sbit LCD_D4_Direction at TRISB2_bit;
+sbit LCD_D5_Direction at TRISB3_bit;
+sbit LCD_D6_Direction at TRISB4_bit;
+sbit LCD_D7_Direction at TRISB5_bit;
 
-- [Adafruit Unified Sensor Library](https://github.com/adafruit/Adafruit_Sensor)
+/* Pino do sensor DHT11 */
+sbit DHT11_Data at RB6_bit;
+sbit DHT11_Data_Direction at TRISB6_bit;
+
+/* Variáveis */
+char umidade[2], temperatura[2]; //MSB - parte decimal, LSB - parte inteira
+char texto[6]; // 000°C ou 000%
+
+void main()
+{
+      // Inicializa o display LCD
+      Lcd_Init();
+      Lcd_Cmd( _LCD_CLEAR );
+      Lcd_Cmd( _LCD_CURSOR_OFF );
+      
+      while( 1 )
+      {
+        // Recupera os valores da umidade e da temperatura
+        if( DHT11_Read( &umidade, &temperatura ) == DHT11_OK )
+        {
+          Lcd_Out( 1, 1, "UMIDADE: " );
+          ByteToStr( umidade[0], texto );
+          texto[3] = '%';
+          texto[4] = 0;
+          Lcd_Out_CP( texto );
+
+          Lcd_Out( 2, 1, " TEMP: " );
+          ByteToStr( temperatura[0], texto );
+          texto[3] = 223; //°
+          texto[4] = 'C';
+          texto[5] = 0;
+          Lcd_Out_CP( texto );
+        }
+        
+        Delay_ms( 2000 );
+      }
+
+}
+```
