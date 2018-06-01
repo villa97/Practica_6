@@ -23,7 +23,17 @@ int valorPosicional[4]={0};
 int digitoMostrar[4]={0};
 //Arreglo con los valores para pintar los numeros de 0 a 9
 int numeros[10]={63,6,91,79,102,109,125,7,127,103};
+//Interrupcion del pushBotton (temperatura o humedad))
+#INT_RB
+void interrupt_isr(void)
+{
+   if(input(PIN_B4)==1)
+       LedsTH++;   
+   if(LedsTH==2)
+       LedsTH=0;
+}
 void main() 
 {
-   
+   enable_interrupts(INT_RB);
+   enable_interrupts(GLOBAL);
 }
