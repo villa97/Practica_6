@@ -77,6 +77,69 @@ char lecturaDeSenseo()
       }
    return auxiliarLectura;
 }
+//-------------Funciones para mostrar cada digito
+void display1(int led)
+{
+    output_c(1+led);
+    output_d(digitoMostrar[0]);
+}
+void display2(int led)
+{
+    output_c(2+led);
+    output_d(digitoMostrar[1]+128);
+}
+void display3(int led)
+{
+    output_c(4+led);
+    output_d(digitoMostrar[2]);
+}
+void display4(int led)
+{
+    output_c(8+led);
+    output_d(digitoMostrar[3]);
+}
+//----------------------------
+//Funcion Humedad
+void humedad(void)
+{
+    
+    valorPosicional[0] = humedadDecena/10; //decenas
+    valorPosicional[1] = humedadDecena%10; //unidades
+    valorPosicional[2] = humedadUnidad/10; //decimas
+    valorPosicional[3] = humedadUnidad%10; //centesimas 
+    for(int recorrido=0; recorrido<4; recorrido++)
+    {
+      digitoMostrar[recorrido] =numeros[valorPosicional[recorrido]];
+    }
+    display1(64);
+     delay_ms(10);
+    display2(64);
+     delay_ms(10);
+    display3(64);
+     delay_ms(10);
+    display4(64);
+     delay_ms(10);
+}
+//Funcion Temperatura
+void temperatura(void)
+{
+    valorPosicional[0] = temperaturaDecena/10; //decenas
+    valorPosicional[1] = temperaturaDecena%10; //unidades
+    valorPosicional[2] = temperaturaUnidad/10; //decimas
+    valorPosicional[3] = temperaturaUnidad%10; //centesimas
+    for(int recorrido=0; recorrido<4; recorrido++)
+    {
+      digitoMostrar[recorrido] =numeros[valorPosicional[recorrido]];
+    }
+    display1(32);
+     delay_ms(10);
+    display2(32);
+     delay_ms(10);
+    display3(32);
+     delay_ms(10);
+    display4(32);
+     delay_ms(10);
+}
 void main() 
 {
    set_tris_b(0x08);
