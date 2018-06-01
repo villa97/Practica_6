@@ -38,9 +38,9 @@ void comunicacion(void)
    inDataDht = 0;
    output_high(dht11);
    output_low(dht11);
-    delay_ms(18);
+   delay_ms(18);
    output_high(dht11);
-    delay_us(30);
+   delay_us(30);
    inDataDht = 1;
    
 }
@@ -60,22 +60,22 @@ void proceso(void)
 char lecturaDeSenseo()
 {   
    inDataDht = 1;
-   char auxiliarLectura;
-   for(int recorrido=0; recorrido<8; recorrido++)
+   char i;
+   for(int j=0; j<8; j++)
       {
          while(!input(dht11));
          delay_us(30);
          if(input(dht11) == 0)
             {
-               auxiliarLectura&= ~(1<<(7-recorrido));
+               i&= ~(1<<(7-j));
             }
          else
             {
-               auxiliarLectura|= (1<<(7-recorrido));
+               i|= (1<<(7-j));
               while(input(dht11)==1);
             }
       }
-   return auxiliarLectura;
+   return i;
 }
 //-------------Funciones para mostrar cada digito
 void display1(int led)
@@ -140,6 +140,7 @@ void temperatura(void)
     display4(32);
      delay_ms(10);
 }
+//Funcion principal
 void main() 
 {
    set_tris_b(0x08);
