@@ -32,8 +32,78 @@ void interrupt_isr(void)
    if(LedsTH==2)
        LedsTH=0;
 }
+//Funcion Comunicacion con sensor.
+void comunicacion(void)
+{
+   inDataDht = 0;
+   output_high(dht11);
+   output_low(dht11);
+    delay_ms(18);
+   output_high(dht11);
+    delay_us(30);
+   inDataDht = 1;
+   
+}
+//Funcion Proceso Correcto
+void proceso(void)
+{
+   delay_us(40);
+   if(dataDht==0)
+      {
+         delay_us(80);
+         if(input(dht11) == 1)
+            procesoCorrecto=1;
+         delay_us(40);        
+      }
+}
+//Funcion Lectura del sensor.
+char lecturaDeSenseo()
+{   
+   inDataDht = 1;
+   char auxiliarLectura;
+   for(int recorrido=0; recorrido<8; recorrido++)
+      {
+         while(!input(dht11));
+         delay_us(30);
+         if(input(dht11) == 0)
+            {
+               auxiliarLectura&= ~(1<<(7-recorrido));
+            }
+         else
+            {
+               auxiliarLectura|= (1<<(7-recorrido));
+              while(input(dht11)==1);
+            }
+      }
+   return auxiliarLectura;
+}
 void main() 
 {
+   set_tris_b(0x08);
+   set_tris_c(0x00);
+   set_tris_d(0x00);
+   setup_oscillator(OSC_16MHZ);
    enable_interrupts(INT_RB);
    enable_interrupts(GLOBAL);
+   unsigned int validacionContenido;
+   while(1)
+   {       
+      comunicacion();
+      proceso();
+      if(procesoCorrecto==1)
+      {
+         humedadDecena = lecturaDeSenseo();
+         humedadUnidad = lecturaDeSenseo();
+         temperaturaDecena = lecturaDeSenseo();
+         temperaturaUnidad = lecturaDeSenseo();
+         validacionContenido = lecturaDeSenseo();
+         if(validacionContenido == ((humedadDecena+humedadUnidad+temperaturaDecena+temperaturaUnidad) & 0xFF))
+         {
+            if(LedsTH==0)
+               humedad();
+            else
+               temperatura();
+         }
+      } 
+   } 
 }
