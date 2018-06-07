@@ -16,6 +16,8 @@ unsigned int temperaturaDecena;
 unsigned int temperaturaUnidad;
 unsigned int humedadDecena;
 unsigned int humedadUnidad;
+int contadorBCD=1;
+int contadorDD=0;
 //Variable de cambio de senseo
 int LedsTH=0;
 //Arreglos almacenar los datos del senseo
@@ -28,9 +30,25 @@ int numeros[10]={63,6,91,79,102,109,125,7,127,103};
 void interrupt_isr(void)
 {
    if(input(PIN_B4)==1)
-       LedsTH++;   
+      LedsTH++;   
    if(LedsTH==2)
-       LedsTH=0;
+      LedsTH=0;
+}
+#int_timer0                 
+void timer0(void)  
+{
+   contadorDD++;
+   contadorBCD *=2;
+   if(contadorDD>=4)
+      contadorDD=0;   
+   if(contadorBCD >= 16)
+      contadorBCD = 1;   
+   output_a(contadorBCD);
+   if (contadorBCD == 0x02)
+      output_d(digitoMostrar[contadorDD]+128);
+   else
+      output_d(digitoMostrar[contadorDD]);
+   set_timer0(80);
 }
 //Funcion Comunicacion con sensor.
 void comunicacion(void)
@@ -42,7 +60,6 @@ void comunicacion(void)
    output_high(dht11);
    delay_us(30);
    inDataDht = 1;
-   
 }
 //Funcion Proceso Correcto
 void proceso(void)
@@ -72,53 +89,23 @@ char lecturaDeSenseo()
          else
             {
                i|= (1<<(7-j));
-              while(input(dht11)==1);
+               while(input(dht11)==1);
             }
       }
    return i;
 }
-//-------------Funciones para mostrar cada digito
-void display1(int led)
-{
-    output_c(1+led);
-    output_d(digitoMostrar[0]);
-}
-void display2(int led)
-{
-    output_c(2+led);
-    output_d(digitoMostrar[1]+128);
-}
-void display3(int led)
-{
-    output_c(4+led);
-    output_d(digitoMostrar[2]);
-}
-void display4(int led)
-{
-    output_c(8+led);
-    output_d(digitoMostrar[3]);
-}
-//----------------------------
+
 //Funcion Humedad
 void humedad(void)
 {
-    
-    valorPosicional[0] = humedadDecena/10; //decenas
-    valorPosicional[1] = humedadDecena%10; //unidades
-    valorPosicional[2] = humedadUnidad/10; //decimas
-    valorPosicional[3] = humedadUnidad%10; //centesimas 
-    for(int recorrido=0; recorrido<4; recorrido++)
-    {
-      digitoMostrar[recorrido] =numeros[valorPosicional[recorrido]];
-    }
-    display1(64);
-     delay_ms(10);
-    display2(64);
-     delay_ms(10);
-    display3(64);
-     delay_ms(10);
-    display4(64);
-     delay_ms(10);
+   valorPosicional[0] = humedadDecena/10; //decenas
+   valorPosicional[1] = humedadDecena%10; //unidades
+   valorPosicional[2] = humedadUnidad/10; //decimas
+   valorPosicional[3] = humedadUnidad%10; //centesimas 
+   for(int recorrido=0; recorrido<4; recorrido++)
+      {
+         digitoMostrar[recorrido] =numeros[valorPosicional[recorrido]];
+      }
 }
 //Funcion Temperatura
 void temperatura(void)
@@ -128,46 +115,46 @@ void temperatura(void)
     valorPosicional[2] = temperaturaUnidad/10; //decimas
     valorPosicional[3] = temperaturaUnidad%10; //centesimas
     for(int recorrido=0; recorrido<4; recorrido++)
-    {
-      digitoMostrar[recorrido] =numeros[valorPosicional[recorrido]];
-    }
-    display1(32);
-     delay_ms(10);
-    display2(32);
-     delay_ms(10);
-    display3(32);
-     delay_ms(10);
-    display4(32);
-     delay_ms(10);
+       {
+          digitoMostrar[recorrido] =numeros[valorPosicional[recorrido]];
+       }
 }
 //Funcion principal
 void main() 
 {
-   set_tris_b(0x08);
-   set_tris_c(0x00);
+   set_tris_a(0x00);
+   set_tris_b(0xff);
+   set_tris_c(0xff);
    set_tris_d(0x00);
+   set_tris_e(0x00);
    setup_oscillator(OSC_16MHZ);
    enable_interrupts(INT_RB);
    enable_interrupts(GLOBAL);
    unsigned int validacionContenido;
    while(1)
-   {       
-      comunicacion();
-      proceso();
-      if(procesoCorrecto==1)
-      {
-         humedadDecena = lecturaDeSenseo();
-         humedadUnidad = lecturaDeSenseo();
-         temperaturaDecena = lecturaDeSenseo();
-         temperaturaUnidad = lecturaDeSenseo();
-         validacionContenido = lecturaDeSenseo();
-         if(validacionContenido == ((humedadDecena+humedadUnidad+temperaturaDecena+temperaturaUnidad) & 0xFF))
-         {
-            if(LedsTH==0)
-               humedad();
-            else
-               temperatura();
-         }
+      {       
+         comunicacion();
+         proceso();
+         if(procesoCorrecto==1)
+            {
+               humedadDecena = lecturaDeSenseo();
+               humedadUnidad = lecturaDeSenseo();
+               temperaturaDecena = lecturaDeSenseo();
+               temperaturaUnidad = lecturaDeSenseo();
+               validacionContenido = lecturaDeSenseo();
+               if(validacionContenido == ((humedadDecena+humedadUnidad+temperaturaDecena+temperaturaUnidad) & 0xFF))
+                  {
+                     if(LedsTH==0)
+                        {
+                           output_e(1);
+                           humedad();
+                        }
+                     else
+                        {
+                           output_e(2);
+                           temperatura();
+                        }               
+                  }
+           } 
       } 
-   } 
 }
